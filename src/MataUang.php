@@ -1,6 +1,6 @@
 <?php
 
-namespace Dsi\SmartErpHelper;
+namespace Esikat\Helper;
 
 /**
  * Kelas untuk mengelola berbagai fungionalitas yang berhubungan dengan mata uang.

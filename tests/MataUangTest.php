@@ -1,7 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Dsi\SmartErpHelper\MataUang;
+use Esikat\Helper\MataUang;
 
 class MataUangTest extends TestCase 
 {
