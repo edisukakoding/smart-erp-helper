@@ -1,6 +1,6 @@
 # Smart ERP Helper
 
-Library internal untuk mendukung pengembangan smart erp.
+Library internal yang berisi fungsionalitas untuk membantu pengembangan smart erp.
 
 ## Instalasi
 ```
