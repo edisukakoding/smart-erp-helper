@@ -4,7 +4,7 @@ Library internal yang berisi fungsionalitas untuk membantu pengembangan smart er
 
 ## Instalasi
 ```
-composer require dsi/smart-erp
+composer require esikat/smart-erp-helper
 ```
 
 ## Testing
