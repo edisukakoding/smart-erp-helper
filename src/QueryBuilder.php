@@ -1,7 +1,9 @@
 <?php
+
 namespace Esikat\Helper;
 
 use PDO;
+use InvalidArgumentException;
 
 class QueryBuilder
 {
@@ -75,13 +77,13 @@ class QueryBuilder
     /**
      * Menambahkan kondisi WHERE pada query.
      *
-     * @param string $column Nama kolom.
-     * @param string $operator Operator perbandingan (e.g., '=', '<', '>').
-     * @param mixed $value Nilai yang akan dibandingkan.
+     * @param string|array $column Nama kolom atau array kondisi.
+     * @param string|null $operator Operator perbandingan (e.g., '=', '<', '>').
+     * @param mixed $value Nilai yang akan dibandingkan (jika $column adalah string).
      * 
      * @return self Instance dari QueryBuilder.
      */
-    public function where($column, ?string $operator, $value = null): self
+    public function where(string|array $column, ?string $operator = null, mixed $value = null): self
     {
         if (is_array($column)) {
             // Jika parameter pertama adalah array, buat kondisi dari key-value
@@ -90,12 +92,13 @@ class QueryBuilder
                 $this->bindings[] = $val;
             }
         } else {
-            // Jika parameter biasa (string, operator, value)
-            if (count($this->conditions) > 0) {
-                $this->conditions[] = "AND $column $operator ?";
-            } else {
-                $this->conditions[] = "$column $operator ?";
+            // Validasi parameter
+            if ($operator === null || $value === null) {
+                throw new InvalidArgumentException("Jika parameter pertama adalah string, operator dan value harus diisi.");
             }
+
+            // Jika parameter biasa (string, operator, value)
+            $this->conditions[] = "$column $operator ?";
             $this->bindings[] = $value;
         }
         return $this;
@@ -220,7 +223,7 @@ class QueryBuilder
         return $this;
     }
 
-     /**
+    /**
      * Menjalankan query dan mengembalikan hasil dalam bentuk array.
      *
      * @return array Hasil query dalam bentuk array asosiatif.
@@ -258,23 +261,33 @@ class QueryBuilder
     public function toSql(): string
     {
         $sql = "SELECT {$this->columns} FROM {$this->table}";
+
         if ($this->joins) {
             $sql .= ' ' . implode(' ', $this->joins);
         }
+
         if ($this->conditions) {
-            $sql .= " WHERE " . preg_replace('/^OR /', '', implode(' ', $this->conditions));
+            // Gabungkan kondisi dengan AND agar format WHERE benar
+            $whereClause = implode(' AND ', $this->conditions);
+            // Hapus "OR " di awal jika ada (untuk menjaga kompatibilitas kode lama)
+            $sql .= " WHERE " . preg_replace('/^OR /', '', $whereClause);
         }
+
         if ($this->orderBy) {
             $sql .= " ORDER BY {$this->orderBy}";
         }
+
         if ($this->limit) {
             $sql .= " LIMIT {$this->limit}";
         }
+
         if ($this->offset) {
             $sql .= " OFFSET {$this->offset}";
         }
+
         return $sql;
     }
+
 
     /**
      * Mendapatkan semua binding parameter untuk query.
@@ -298,14 +311,14 @@ class QueryBuilder
         $columns = implode(', ', array_keys($data));
         $placeholders = implode(', ', array_fill(0, count($data), '?'));
         $sql = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})";
-        
+
         $stmt = $this->pdo->prepare($sql);
         $result = $stmt->execute(array_values($data));
         $this->reset();
         return $result;
     }
 
-     /**
+    /**
      * Memperbarui data di dalam tabel.
      *
      * @param array $data Data yang akan diperbarui (kolom => nilai).
@@ -316,7 +329,7 @@ class QueryBuilder
     {
         $setClauses = [];
         $updateBindings = []; // Simpan sementara data update
-        
+
         foreach ($data as $column => $value) {
             $setClauses[] = "$column = ?";
             $updateBindings[] = $value; // Data update dulu
@@ -329,15 +342,14 @@ class QueryBuilder
         }
 
         $stmt = $this->pdo->prepare($sql);
-        
+
         // Urutan bindings harus: DATA UPDATE dulu, baru kondisi WHERE
         $bindings = array_merge($updateBindings, $this->bindings);
-        
+
         $result = $stmt->execute($bindings);
         $this->reset();
         return $result;
     }
-
 
     /**
      * Menghapus data dari tabel.
@@ -349,10 +361,10 @@ class QueryBuilder
         $sql = "DELETE FROM {$this->table}";
 
         if ($this->conditions) {
-            // Pastikan kondisi WHERE tidak diawali dengan "AND " atau "OR "
-            $conditions = implode(' ', $this->conditions);
-            $conditions = preg_replace('/^(AND |OR )/', '', $conditions);
-            $sql .= " WHERE " . $conditions;
+            // Gabungkan kondisi dengan AND agar format WHERE benar
+            $conditions = implode(' AND ', $this->conditions);
+            // Hapus "AND " atau "OR " di awal jika ada (untuk kompatibilitas kode lama)
+            $sql .= " WHERE " . preg_replace('/^(AND |OR )/', '', $conditions);
         }
 
         $stmt = $this->pdo->prepare($sql);
@@ -360,5 +372,4 @@ class QueryBuilder
         $this->reset();
         return $result;
     }
-
 }
