@@ -74,4 +74,20 @@ class URL
         $page = $_GET['page'] ?? '';
         return $page === self::enkripsi($token) ? 'active' : '';
     }
+
+    /**
+     * Fungsi untuk mengambil URL utama.
+     *
+     * @param string $path      path url.
+     *
+     * @return string URL lengkap.
+     *
+     * @example
+     * // Contoh penggunaan:
+     * $isaktif = URL::aktif($token);
+     */
+    public static function urlUtama(string $path = '/'): string
+    {
+        return ($_ENV['BASE_URL'] ?? '') . $path;
+    }
 }

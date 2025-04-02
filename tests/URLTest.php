@@ -26,4 +26,11 @@ class URLTest extends TestCase
         $_GET['page']   = URL::enkripsi('0002');
         $this->assertNotEquals('active', URL::aktif('0001'));
     }
+
+    public function testUrlUtama()
+    {
+        $path   = '/test';
+        $url    = URL::urlUtama($path);
+        $this->assertEquals($path, $url);
+    }
 }

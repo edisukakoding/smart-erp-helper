@@ -62,4 +62,11 @@ class HelpersTest extends TestCase
         $this->assertStringContainsString('alert-info', $messageHtml);
         $this->assertArrayNotHasKey('test', $_SESSION['flash']);
     }
+
+    public function testUrlUtama()
+    {
+        $path   = '/test';
+        $url    = base_url($path);
+        $this->assertEquals($path, $url);
+    }
 }

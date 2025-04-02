@@ -37,3 +37,8 @@ function flashMessage(string $key, ?string $message = null, string $type = 'succ
 {
     return Tampilan::pesanKilat($key, $message, $type);
 }
+
+function base_url($path = '/')
+{
+    return URL::urlUtama($path);
+}
