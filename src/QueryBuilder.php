@@ -81,13 +81,16 @@ class QueryBuilder
      * 
      * @return self Instance dari QueryBuilder.
      */
-    public function where(string $column, string $operator, $value): self
+    public function where($column, ?string $operator, $value = null): self
     {
-        if ($value instanceof self) {
-            $subquery = $value->toSql();
-            $this->conditions[] = "$column $operator ($subquery)";
-            $this->bindings = array_merge($this->bindings, $value->getBindings());
+        if (is_array($column)) {
+            // Jika parameter pertama adalah array, buat kondisi dari key-value
+            foreach ($column as $col => $val) {
+                $this->conditions[] = "$col = ?";
+                $this->bindings[] = $val;
+            }
         } else {
+            // Jika parameter biasa (string, operator, value)
             if (count($this->conditions) > 0) {
                 $this->conditions[] = "AND $column $operator ?";
             } else {
@@ -97,6 +100,7 @@ class QueryBuilder
         }
         return $this;
     }
+
 
     /**
      * Menambahkan kondisi OR WHERE pada query.
@@ -343,10 +347,14 @@ class QueryBuilder
     public function delete(): bool
     {
         $sql = "DELETE FROM {$this->table}";
+
         if ($this->conditions) {
-            $sql .= " WHERE " . implode(' AND ', $this->conditions);
+            // Pastikan kondisi WHERE tidak diawali dengan "AND " atau "OR "
+            $conditions = implode(' ', $this->conditions);
+            $conditions = preg_replace('/^(AND |OR )/', '', $conditions);
+            $sql .= " WHERE " . $conditions;
         }
-        
+
         $stmt = $this->pdo->prepare($sql);
         $result = $stmt->execute($this->bindings);
         $this->reset();
