@@ -3,7 +3,7 @@
 use Esikat\Helper\Tampilan;
 use Esikat\Helper\URL;
 
-function URLEncryp($url) 
+function URLEncrypt($url) 
 {
     return URL::enkripsi($url);
 }

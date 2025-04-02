@@ -7,7 +7,7 @@ class HelpersTest extends TestCase
     public function testEnkripsiDekripsi()
     {
         $originalUrl    = '1234';
-        $encrypted      = URLEncryp($originalUrl);
+        $encrypted      = URLEncrypt($originalUrl);
         $decrypted      = URLDecrypt($encrypted);
         
         $this->assertNotEquals($originalUrl, $encrypted, 'Nilai terenkripsi tidak boleh sama dengan nilai asli');
@@ -16,13 +16,13 @@ class HelpersTest extends TestCase
 
     public function testUrlAktif()
     {
-        $_GET['page']   = URLEncryp('0001');
+        $_GET['page']   = URLEncrypt('0001');
         $this->assertEquals('active', urlActive('0001'));
     }
 
     public function testUrlTidakAktif()
     {
-        $_GET['page']   = URLEncryp('0002');
+        $_GET['page']   = URLEncrypt('0002');
         $this->assertNotEquals('active', urlActive('0001'));
     }
 
