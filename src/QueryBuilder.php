@@ -108,20 +108,25 @@ class QueryBuilder
     /**
      * Menambahkan kondisi OR WHERE pada query.
      *
-     * @param string $column Nama kolom.
-     * @param string $operator Operator perbandingan (e.g., '=', '<', '>').
+     * @param string|array $column Nama kolom atau array kondisi.
+     * @param string|null $operator Operator perbandingan (e.g., '=', '<', '>').
      * @param mixed $value Nilai yang akan dibandingkan.
      * 
      * @return self Instance dari QueryBuilder.
      */
-    public function orWhere(string $column, string $operator, $value): self
+    public function orWhere(string|array $column, ?string $operator = null, mixed $value = null): self
     {
-        if ($value instanceof self) {
-            $subquery = $value->toSql();
-            $this->conditions[] = "OR $column $operator ($subquery)";
-            $this->bindings = array_merge($this->bindings, $value->getBindings());
+        if (is_array($column)) {
+            foreach ($column as $col => $val) {
+                $this->conditions[] = (empty($this->conditions) ? "" : "OR ") . "$col = ?";
+                $this->bindings[] = $val;
+            }
         } else {
-            $this->conditions[] = "OR $column $operator ?";
+            if (count($this->conditions) > 0) {
+                $this->conditions[] = "OR $column $operator ?";
+            } else {
+                $this->conditions[] = "$column $operator ?";
+            }
             $this->bindings[] = $value;
         }
         return $this;
@@ -267,20 +272,18 @@ class QueryBuilder
         }
 
         if ($this->conditions) {
-            // Gabungkan kondisi dengan AND agar format WHERE benar
-            $whereClause = implode(' AND ', $this->conditions);
-            // Hapus "OR " di awal jika ada (untuk menjaga kompatibilitas kode lama)
-            $sql .= " WHERE " . preg_replace('/^OR /', '', $whereClause);
+            // Bersihkan AND OR yang salah
+            $conditions = implode(' ', $this->conditions);
+            $conditions = preg_replace('/\b(AND|OR)\s+(AND|OR)\b/', '$2', $conditions);
+            $sql .= " WHERE " . $conditions;
         }
 
         if ($this->orderBy) {
             $sql .= " ORDER BY {$this->orderBy}";
         }
-
         if ($this->limit) {
             $sql .= " LIMIT {$this->limit}";
         }
-
         if ($this->offset) {
             $sql .= " OFFSET {$this->offset}";
         }
