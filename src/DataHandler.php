@@ -20,10 +20,11 @@ class DataHandler {
      * @param string $primaryKey Kunci utama tabel (default: 'id').
      * @param string $join Query join tambahan (default: '').
      * @param array $joinColumns Kolom tambahan dari tabel yang di-join.
+     * @param string $explicitWhere Kondisi tambahan yang ditetapkan secara eksplisit.
      *
      * @return string JSON data sesuai dengan format DataTable.
      */
-    public function datatable(string $table, array $columns, string $primaryKey = 'id', string $join = '', array $joinColumns = []) {
+    public function datatable(string $table, array $columns, string $primaryKey = 'id', string $join = '', array $joinColumns = [], string $explicitWhere = '') {
         $draw = $_GET['draw'] ?? 1;
         $start = $_GET['start'] ?? 0;
         $length = $_GET['length'] ?? 10;
@@ -53,6 +54,10 @@ class DataHandler {
             }
             $whereConditions[] = '(' . implode(' OR ', $searchConditions) . ')';
             $params[':search'] = "%$searchValue%";
+        }
+        
+        if (!empty($explicitWhere)) {
+            $whereConditions[] = "($explicitWhere)";
         }
         
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
