@@ -3,7 +3,6 @@
 namespace Esikat\Helper;
 
 use PDO;
-use InvalidArgumentException;
 
 class QueryBuilder
 {
@@ -86,23 +85,21 @@ class QueryBuilder
     public function where(string|array $column, ?string $operator = null, mixed $value = null): self
     {
         if (is_array($column)) {
-            // Jika parameter pertama adalah array, buat kondisi dari key-value
             foreach ($column as $col => $val) {
-                $this->conditions[] = "$col = ?";
+                $this->conditions[] = (empty($this->conditions) ? "" : "AND ") . "$col = ?";
                 $this->bindings[] = $val;
             }
         } else {
-            // Validasi parameter
-            if ($operator === null || $value === null) {
-                throw new InvalidArgumentException("Jika parameter pertama adalah string, operator dan value harus diisi.");
+            if ($value === null) {
+                $value = $operator;
+                $operator = "=";
             }
-
-            // Jika parameter biasa (string, operator, value)
-            $this->conditions[] = "$column $operator ?";
+            $this->conditions[] = (empty($this->conditions) ? "" : "AND ") . "$column $operator ?";
             $this->bindings[] = $value;
         }
         return $this;
     }
+
 
 
     /**
@@ -122,15 +119,16 @@ class QueryBuilder
                 $this->bindings[] = $val;
             }
         } else {
-            if (count($this->conditions) > 0) {
-                $this->conditions[] = "OR $column $operator ?";
-            } else {
-                $this->conditions[] = "$column $operator ?";
+            if ($value === null) {
+                $value = $operator;
+                $operator = "=";
             }
+            $this->conditions[] = (empty($this->conditions) ? "" : "OR ") . "$column $operator ?";
             $this->bindings[] = $value;
         }
         return $this;
     }
+
 
     /**
      * Menambahkan join (INNER, LEFT, RIGHT) pada query.
@@ -272,9 +270,8 @@ class QueryBuilder
         }
 
         if ($this->conditions) {
-            // Bersihkan AND OR yang salah
             $conditions = implode(' ', $this->conditions);
-            $conditions = preg_replace('/\b(AND|OR)\s+(AND|OR)\b/', '$2', $conditions);
+            $conditions = preg_replace('/\b(AND|OR)\s+(AND|OR)\b/', '$2', $conditions); // Hapus "AND AND" atau "OR AND"
             $sql .= " WHERE " . $conditions;
         }
 
@@ -290,6 +287,7 @@ class QueryBuilder
 
         return $sql;
     }
+
 
 
     /**
@@ -364,10 +362,9 @@ class QueryBuilder
         $sql = "DELETE FROM {$this->table}";
 
         if ($this->conditions) {
-            // Gabungkan kondisi dengan AND agar format WHERE benar
-            $conditions = implode(' AND ', $this->conditions);
-            // Hapus "AND " atau "OR " di awal jika ada (untuk kompatibilitas kode lama)
-            $sql .= " WHERE " . preg_replace('/^(AND |OR )/', '', $conditions);
+            $conditions = implode(' ', $this->conditions);
+            $conditions = preg_replace('/\b(AND|OR)\s+(AND|OR)\b/', '$2', $conditions); // Fix format WHERE
+            $sql .= " WHERE " . $conditions;
         }
 
         $stmt = $this->pdo->prepare($sql);
