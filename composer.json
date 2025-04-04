@@ -1,7 +1,7 @@
 {
     "name": "esikat/smart-erp-helper",
     "description": "Package ini bersisi semua fungsionalitas dalam pengembangan smart-erp",
-    "version": "v1.3.1",
+    "version": "v1.3.2",
     "type": "library",
     "license": "Apache-2.0",
     "autoload": {
@@ -10,6 +10,14 @@
         },
         "files": [
             "src/helpers.php"
+        ]
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "Esikat\\Helper\\Scripts\\PostInstall::copyEsikat"
+        ],
+        "post-update-cmd": [
+            "Esikat\\Helper\\Scripts\\PostInstall::copyEsikat"
         ]
     },
     "authors": [
