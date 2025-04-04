@@ -4,8 +4,8 @@
 function loadAutoload(): void
 {
     $paths = [
+        __DIR__ . '/vendor/autoload.php',           // saat dijalankan di modul
         __DIR__ . '/../vendor/autoload.php',        // saat dijalankan langsung dari package
-        __DIR__ . '/../../../autoload.php',         // saat dijalankan dari vendor/bin
     ];
 
     foreach ($paths as $path) {
