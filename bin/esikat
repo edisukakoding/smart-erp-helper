@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Esikat\Helper\CLI\MotivasiCommand;
+use Esikat\Helper\CLI\PageListCommand;
+
+$application = new Application("esikat CLI", "1.0.0");
+
+#Registrasi Perintah
+$application->add(new MotivasiCommand());
+$application->add(new PageListCommand());
+$application->run();
