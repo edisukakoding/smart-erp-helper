@@ -13,12 +13,13 @@ class URL
      */
     private static function ambilKunci(): string
     {
-        if (file_exists(__DIR__ . '/../.env')) {
-            $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
+        if (file_exists(getcwd() . '/.env')) {
+            $dotenv = Dotenv::createImmutable(getcwd());
             $dotenv->load();
         }
         
         $key = $_ENV['MODULE_KEY'] ?? 'password';
+
         return substr(hash('sha256', $key, true), 0, 8);
     }
 

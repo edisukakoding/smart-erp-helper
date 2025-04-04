@@ -21,6 +21,7 @@ function loadAutoload(): void
 
 loadAutoload();
 
+use Esikat\Helper\CLI\ActionListCommand;
 use Symfony\Component\Console\Application;
 use Esikat\Helper\CLI\MotivasiCommand;
 use Esikat\Helper\CLI\PageListCommand;
@@ -29,5 +30,6 @@ $application = new Application("esikat CLI", "1.0.0");
 
 $application->add(new MotivasiCommand());
 $application->add(new PageListCommand());
+$application->add(new ActionListCommand());
 
 $application->run();
