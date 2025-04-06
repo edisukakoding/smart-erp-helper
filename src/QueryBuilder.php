@@ -307,7 +307,7 @@ class QueryBuilder
      * 
      * @return bool Status eksekusi query.
      */
-    public function insert(array $data): bool
+    public function insert(array $data): ?array
     {
         $columns = implode(', ', array_keys($data));
         $placeholders = implode(', ', array_fill(0, count($data), '?'));
@@ -315,9 +315,18 @@ class QueryBuilder
 
         $stmt = $this->pdo->prepare($sql);
         $result = $stmt->execute(array_values($data));
+
+        if ($result) {
+            $id = $this->pdo->lastInsertId();
+            $table = explode(' ', $this->table)[0]; // buang alias kalau ada
+            $this->reset();
+            return $this->table($table)->where('id', $id)->first();
+        }
+
         $this->reset();
-        return $result;
+        return null;
     }
+
 
     /**
      * Memperbarui data di dalam tabel.
@@ -326,14 +335,14 @@ class QueryBuilder
      * 
      * @return bool Status eksekusi query.
      */
-    public function update(array $data): bool
+    public function update(array $data): ?array
     {
         $setClauses = [];
-        $updateBindings = []; // Simpan sementara data update
+        $updateBindings = [];
 
         foreach ($data as $column => $value) {
             $setClauses[] = "$column = ?";
-            $updateBindings[] = $value; // Data update dulu
+            $updateBindings[] = $value;
         }
 
         $sql = "UPDATE {$this->table} SET " . implode(', ', $setClauses);
@@ -343,14 +352,31 @@ class QueryBuilder
         }
 
         $stmt = $this->pdo->prepare($sql);
-
-        // Urutan bindings harus: DATA UPDATE dulu, baru kondisi WHERE
         $bindings = array_merge($updateBindings, $this->bindings);
-
         $result = $stmt->execute($bindings);
+
+        if ($result) {
+            // Simpan table dan kondisi sebelum reset
+            $table = $this->table;
+            $conditions = $this->conditions;
+            $bindings = $this->bindings;
+
+            $this->reset();
+            $this->table($table); // pakai kembali nama tabel
+            foreach ($conditions as $cond) {
+                preg_match('/(\w+)\s*=\s*\?/', $cond, $match);
+                if (isset($match[1])) {
+                    $this->where($match[1], array_shift($bindings));
+                }
+            }
+
+            return $this->first();
+        }
+
         $this->reset();
-        return $result;
+        return null;
     }
+
 
     /**
      * Menghapus data dari tabel.
