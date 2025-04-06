@@ -50,7 +50,7 @@ class Log
      * @param int|null      $row_id ID baris data yang diubah (opsional).
      * @param string|null   $previous_data Data sebelumnya dalam bentuk string (opsional).
      */
-    public function logAktifitas(string $jenis, string $subjek, string $kdtransaksi, ?int $row_id = null, ?string $previous_data = null)
+    public function aktifitas(string $jenis, string $subjek, string $kdtransaksi, ?int $row_id = null, ?string $previous_data = null)
     {
         try {
             $data = [

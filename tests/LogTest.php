@@ -60,6 +60,6 @@ class LogTest extends TestCase
         $this->expectInsertCalled($qbMock, $jenis, $subjek, $expectedAktifitas);
 
         $log = $this->createLog($qbMock);
-        $log->logAktifitas($jenis, $subjek, 'TX999');
+        $log->aktifitas($jenis, $subjek, 'TX999');
     }
 }
