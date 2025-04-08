@@ -317,10 +317,16 @@ class QueryBuilder
         $result = $stmt->execute(array_values($data));
 
         if ($result) {
-            $id = $this->pdo->lastInsertId();
-            $table = explode(' ', $this->table)[0]; // buang alias kalau ada
+            $table = explode(' ', $this->table)[0]; // Buang alias
             $this->reset();
-            return $this->table($table)->where('id', $id)->first();
+            $this->table($table);
+
+            // Coba ambil kembali data berdasarkan data yang disisipkan
+            foreach ($data as $key => $value) {
+                $this->where($key, $value);
+            }
+
+            return $this->first();
         }
 
         $this->reset();
