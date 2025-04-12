@@ -22,13 +22,30 @@ class PageListCommand extends Command
         $projectRoot    = getcwd();
         $configPath     = $projectRoot . '/src/config/pages.php';
 
-        if(!file_exists($configPath)) {
+        if (!file_exists($configPath)) {
             $output->writeln("File src/config/pages.php tidak ditemukan!");
         } else {
             $pages = include $configPath;
-            $pages = array_map(fn($key, $value) => [$key, URLEncrypt($key), $value], array_keys($pages), $pages);
+
+            if (!is_array($pages)) {
+                $output->writeln("Format file pages.php tidak valid!");
+                return Command::FAILURE;
+            }
+
+            // Format baris: [param, enkripsi, sumber, judul]
+            $rows = array_map(function ($page) {
+                return [
+                    $page['param'] ?? '',
+                    URLEncrypt($page['param'] ?? ''),
+                    $page['sumber'] ?? '',
+                    $page['judul'] ?? '',
+                ];
+            }, $pages);
+
             $table = new Table($output);
-            $table->setHeaders(['Kode', 'Enkripsi', 'Sumber'])->setRows($pages);
+            $table
+                ->setHeaders(['Param', 'Enkripsi', 'Sumber', 'Judul'])
+                ->setRows($rows);
             $table->render();
         }
 
