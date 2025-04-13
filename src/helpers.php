@@ -42,3 +42,11 @@ function base_url($path = '/')
 {
     return URL::urlUtama($path);
 }
+
+function dd($data)
+{
+    echo '<pre>';
+    echo json_encode($data, JSON_PRETTY_PRINT);
+    echo '</pre>';
+    exit;
+}
