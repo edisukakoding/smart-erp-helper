@@ -28,7 +28,7 @@ class KodeBuilderTest extends TestCase
 
         $hasil = $this->kodeBuilder->previewNoTransaksi('TRX');
 
-        $this->assertStringContainsString('/' . date('Ymd') . '/ABC/0001', $hasil);
+        $this->assertStringContainsString('/' . date('ym') . '/ABC/0001', $hasil);
     }
 
     public function testBuatNoTransaksiDenganTransaksiSebelumnya()
@@ -47,6 +47,6 @@ class KodeBuilderTest extends TestCase
 
         $hasil = $this->kodeBuilder->buatNoTransaksi('INV');
 
-        $this->assertStringContainsString('/' . date('Ymd') . '/DEF/0006', $hasil);
+        $this->assertStringContainsString('/' . date('ym') . '/DEF/0006', $hasil);
     }
 }

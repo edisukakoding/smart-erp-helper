@@ -9,11 +9,13 @@ class KodeBuilder
 {
     private QueryBuilder $queryBuilder;
     private int $kdusaha;
+    private string $tanggal;
 
     public function __construct(QueryBuilder $queryBuilder, int $kdusaha)
     {
         $this->kdusaha = $kdusaha;
         $this->queryBuilder = $queryBuilder;
+        $this->tanggal = date('ym');
     }
 
     /**
@@ -43,7 +45,7 @@ class KodeBuilder
         return $this->queryBuilder
             ->table('rnotransaksi')
             ->where('kdusaha', '=', $this->kdusaha)
-            ->where('tanggal', '=', date('Ymd'))
+            ->where('tanggal', '=', $this->tanggal)
             ->where('prefix', '=', $prefix)
             ->where('singkatan', '=', $singkatan)
             ->first();
@@ -73,7 +75,7 @@ class KodeBuilder
     {
         $this->queryBuilder->table('rnotransaksi')
             ->where('kdusaha', '=', $this->kdusaha)
-            ->where('tanggal', '=', date('Ymd'))
+            ->where('tanggal', '=', $this->tanggal)
             ->where('prefix', '=', $prefix)
             ->where('singkatan', '=', $singkatan)
             ->update(['noakhir' => $noakhir]);
@@ -91,7 +93,7 @@ class KodeBuilder
     {
         $this->queryBuilder->table('rnotransaksi')->insert([
             'kdusaha' => $this->kdusaha,
-            'tanggal' => date('Ymd'),
+            'tanggal' => $this->tanggal,
             'prefix' => $prefix,
             'singkatan' => $singkatan,
             'noakhir' => $noakhir
@@ -110,7 +112,7 @@ class KodeBuilder
         $transaksi = $this->getTransaksi($prefix, $usaha['singkatan']);
 
         $noakhir = $transaksi ? intval($transaksi['noakhir']) + 1 : 1;
-        return "{$prefix}/" . date('Ymd') . "/{$usaha['singkatan']}/" . $this->generateNomor($noakhir, 4);
+        return "{$prefix}/" . $this->tanggal . "/{$usaha['singkatan']}/" . $this->generateNomor($noakhir, 4);
     }
 
     /**
@@ -133,6 +135,6 @@ class KodeBuilder
             $this->insertTransaksi($prefix, $usaha['singkatan'], $noakhirStr);
         }
 
-        return "{$prefix}/" . date('Ymd') . "/{$usaha['singkatan']}/{$noakhirStr}";
+        return "{$prefix}/" . $this->tanggal . "/{$usaha['singkatan']}/{$noakhirStr}";
     }
 }
