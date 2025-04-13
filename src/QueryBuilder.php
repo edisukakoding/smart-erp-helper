@@ -354,7 +354,7 @@ class QueryBuilder
         $sql = "UPDATE {$this->table} SET " . implode(', ', $setClauses);
 
         if ($this->conditions) {
-            $sql .= " WHERE " . implode(' AND ', $this->conditions);
+            $sql .= " WHERE " . implode(' ', $this->conditions);
         }
 
         $stmt = $this->pdo->prepare($sql);
