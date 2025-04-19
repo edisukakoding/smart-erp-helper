@@ -27,7 +27,7 @@ class DataHandler {
     public function datatable(string $table, array $columns, string $primaryKey = 'id', string $join = '', array $joinColumns = [], string $explicitWhere = '') {
         $draw = $_GET['draw'] ?? 1;
         $start = $_GET['start'] ?? 0;
-        $length = $_GET['length'] ?? 10;
+        $length = $_GET['length'] ?? -1;
         $searchValue = $_GET['search']['value'] ?? '';
         
         $columnIndex = $_GET['order'][0]['column'] ?? 0;
@@ -73,13 +73,20 @@ class DataHandler {
         $stmt->execute();
         $filteredRecords = $stmt->fetchColumn();
         
-        $sql = "SELECT " . implode(", ", $allColumns) . " FROM $table $join $whereClause ORDER BY $columnName $columnOrder LIMIT :start, :length";
+        $sql = "SELECT " . implode(", ", $allColumns) . " FROM $table $join $whereClause ORDER BY $columnName $columnOrder";
+        if ($length != -1) {
+            $sql .= " LIMIT :start, :length";
+        }
         $stmt = $this->pdo->prepare($sql);
+
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
         }
-        $stmt->bindValue(':start', (int)$start, PDO::PARAM_INT);
-        $stmt->bindValue(':length', (int)$length, PDO::PARAM_INT);
+
+        if ($length != -1) {
+            $stmt->bindValue(':start', (int)$start, PDO::PARAM_INT);
+            $stmt->bindValue(':length', (int)$length, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
