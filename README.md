@@ -8,11 +8,6 @@ composer require esikat/smart-erp-helper
 ```
 
 ## Testing
-### Linux
 ```
-vendor/bin/phpunit tests --testdox
-```
-### Windows
-```
-vendor\bin\phpunit.bat tests --testdox
+composer test
 ```
