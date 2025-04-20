@@ -2,38 +2,48 @@
 
 namespace Esikat\Helper;
 
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class SpreadsheetBuilder
 {
     protected Spreadsheet $spreadsheet;
-    protected $sheet;
 
     public function __construct()
     {
         $this->spreadsheet = new Spreadsheet();
-        $this->sheet = $this->spreadsheet->getActiveSheet();
+        // Hapus sheet default agar tidak kosong
+        $this->spreadsheet->removeSheetByIndex(0);
     }
 
-    public function build(array $config, array $data): Spreadsheet
+    public function build(array $config, array $data, string $sheetName): void
     {
+        $sheet = $this->spreadsheet->createSheet();
+        $sheet->setTitle($sheetName);
+
         // Header
         foreach ($config as $col) {
-            $this->sheet->setCellValue($col['koordinat'] . '1', $col['text']);
+            $cell = $col['koordinat'] . '1';
+            $sheet->setCellValue($cell, $col['text']);
+            $sheet->getStyle($cell)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle($cell)->getFont()->setBold(true);
+            $sheet->getStyle($cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle($cell)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
         }
 
         // Data
         $rowIndex = 2;
         foreach ($data as $row) {
             foreach ($config as $col) {
+                $cell = $col['koordinat'] . $rowIndex;
                 $value = $row[$col['data']] ?? '';
-                $this->sheet->setCellValue($col['koordinat'] . $rowIndex, $value);
+                $sheet->setCellValue($cell, $value);
+                $sheet->getStyle($cell)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             }
             $rowIndex++;
         }
-
-        return $this->spreadsheet;
     }
 
     public function download(string $filename = 'export.xlsx'): void
