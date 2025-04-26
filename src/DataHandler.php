@@ -19,12 +19,11 @@ class DataHandler {
      * @param array $columns Daftar kolom yang akan ditampilkan.
      * @param string $primaryKey Kunci utama tabel (default: 'id').
      * @param string $join Query join tambahan (default: '').
-     * @param array $joinColumns Kolom tambahan dari tabel yang di-join.
      * @param string $explicitWhere Kondisi tambahan yang ditetapkan secara eksplisit.
      *
      * @return string JSON data sesuai dengan format DataTable.
      */
-    public function datatable(string $table, array $columns, string $primaryKey = 'id', string $join = '', array $joinColumns = [], string $explicitWhere = '') {
+    public function datatable(string $table, array $columns, string $primaryKey = 'id', string $join = '', string $explicitWhere = '') {
         $draw = $_GET['draw'] ?? 1;
         $start = $_GET['start'] ?? 0;
         $length = $_GET['length'] ?? -1;
@@ -33,8 +32,6 @@ class DataHandler {
         $columnIndex = $_GET['order'][0]['column'] ?? 0;
         $columnName = $columns[$columnIndex] ?? $primaryKey;
         $columnOrder = $_GET['order'][0]['dir'] ?? 'asc';
-        
-        $allColumns = array_merge($columns, $joinColumns);
         
         $whereConditions = [];
         $params = [];
@@ -49,7 +46,7 @@ class DataHandler {
         
         if (!empty($searchValue)) {
             $searchConditions = [];
-            foreach ($allColumns as $col) {
+            foreach ($columns as $col) {
                 $searchConditions[] = "$col LIKE :search";
             }
             $whereConditions[] = '(' . implode(' OR ', $searchConditions) . ')';
@@ -73,16 +70,16 @@ class DataHandler {
         $stmt->execute();
         $filteredRecords = $stmt->fetchColumn();
         
-        $sql = "SELECT " . implode(", ", $allColumns) . " FROM $table $join $whereClause ORDER BY $columnName $columnOrder";
+        $sql = "SELECT " . implode(", ", $columns) . " FROM $table $join $whereClause ORDER BY $columnName $columnOrder";
         if ($length != -1) {
             $sql .= " LIMIT :start, :length";
         }
         $stmt = $this->pdo->prepare($sql);
-
+    
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
         }
-
+    
         if ($length != -1) {
             $stmt->bindValue(':start', (int)$start, PDO::PARAM_INT);
             $stmt->bindValue(':length', (int)$length, PDO::PARAM_INT);
@@ -90,13 +87,14 @@ class DataHandler {
         $stmt->execute();
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        return json_encode([
+        return [
             'draw' => (int)$draw,
             'recordsTotal' => (int)$totalRecords,
             'recordsFiltered' => (int)$filteredRecords,
             'data' => $data
-        ]);
+        ];
     }
+    
 
     /**
      * Mengambil data untuk Select2 dalam format JSON.

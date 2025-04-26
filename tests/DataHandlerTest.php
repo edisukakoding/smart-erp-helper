@@ -33,7 +33,7 @@ class DataHandlerTest extends TestCase
         $this->pdo->method('prepare')->willReturn($stmtMock);
         $this->pdo->method('query')->willReturn($stmtMock);
 
-        $result = json_decode($this->dataHandler->datatable('users', $columns, 'id'), true);
+        $result = $this->dataHandler->datatable('users', $columns, 'id');
 
         $this->assertArrayHasKey('draw', $result);
         $this->assertArrayHasKey('recordsTotal', $result);
