@@ -15,6 +15,8 @@ class QueryBuilder
     private $offset;
     private $orderBy;
     private $joins = [];
+    private $groupBy;
+    private $having = [];
 
     /**
      * Konstruktor untuk inisialisasi koneksi PDO.
@@ -39,6 +41,8 @@ class QueryBuilder
         $this->offset = null;
         $this->orderBy = null;
         $this->joins = [];
+        $this->groupBy = null;
+        $this->having = [];
     }
 
     /**
@@ -211,6 +215,38 @@ class QueryBuilder
         $this->offset = $offset;
         return $this;
     }
+    /**
+     * Menambahkan GROUP BY pada query.
+     *
+     * @param string|array $columns Kolom yang akan digunakan untuk pengelompokan.
+     * 
+     * @return self Instance dari QueryBuilder.
+     */
+    public function groupBy(string|array $columns): self
+    {
+        if (is_array($columns)) {
+            $this->groupBy = implode(', ', $columns);
+        } else {
+            $this->groupBy = $columns;
+        }
+        return $this;
+    }
+
+    /**
+     * Menambahkan kondisi HAVING pada query.
+     *
+     * @param string $condition Kondisi HAVING (misalnya: "COUNT(id) > ?").
+     * @param mixed $value Nilai parameter untuk kondisi.
+     * 
+     * @return self Instance dari QueryBuilder.
+     */
+    public function having(string $condition, mixed $value): self
+    {
+        $this->having[] = $condition;
+        $this->bindings[] = $value;
+        return $this;
+    }
+
 
     /**
      * Menambahkan pengurutan data pada query.
@@ -273,6 +309,14 @@ class QueryBuilder
             $conditions = implode(' ', $this->conditions);
             $conditions = preg_replace('/\b(AND|OR)\s+(AND|OR)\b/', '$2', $conditions); // Hapus "AND AND" atau "OR AND"
             $sql .= " WHERE " . $conditions;
+        }
+
+        if ($this->groupBy) {
+            $sql .= " GROUP BY {$this->groupBy}";
+        }
+
+        if ($this->having) {
+            $sql .= " HAVING " . implode(' AND ', $this->having);
         }
 
         if ($this->orderBy) {
