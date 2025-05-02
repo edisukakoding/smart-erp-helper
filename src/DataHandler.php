@@ -5,10 +5,12 @@ namespace Esikat\Helper;
 use PDO;
 use PDOException;
 
-class DataHandler {
+class DataHandler
+{
     private PDO $pdo;
 
-    public function __construct(PDO $pdo) {
+    public function __construct(PDO $pdo)
+    {
         $this->pdo = $pdo;
     }
 
@@ -23,19 +25,27 @@ class DataHandler {
      *
      * @return string JSON data sesuai dengan format DataTable.
      */
-    public function datatable(string $table, array $columns, string $primaryKey = 'id', string $join = '', string $explicitWhere = '') {
+    public function datatable(
+        string $table,
+        array $columns,
+        string $primaryKey = 'id',
+        string $join = '',
+        string $explicitWhere = '',
+        string $groupBy = '',
+        string $having = ''
+    ) {
         $draw = $_GET['draw'] ?? 1;
         $start = $_GET['start'] ?? 0;
         $length = $_GET['length'] ?? -1;
         $searchValue = $_GET['search']['value'] ?? '';
-        
+
         $columnIndex = $_GET['order'][0]['column'] ?? 0;
         $columnName = $columns[$columnIndex] ?? $primaryKey;
         $columnOrder = $_GET['order'][0]['dir'] ?? 'asc';
-        
+
         $whereConditions = [];
         $params = [];
-        
+
         if (!empty($_GET['where']) && is_array($_GET['where'])) {
             foreach ($_GET['where'] as $key => $value) {
                 $paramKey = str_replace('.', '_', $key);
@@ -43,7 +53,7 @@ class DataHandler {
                 $params[":$paramKey"] = $value;
             }
         }
-        
+
         if (!empty($searchValue)) {
             $searchConditions = [];
             foreach ($columns as $col) {
@@ -52,41 +62,60 @@ class DataHandler {
             $whereConditions[] = '(' . implode(' OR ', $searchConditions) . ')';
             $params[':search'] = "%$searchValue%";
         }
-        
+
         if (!empty($explicitWhere)) {
             $whereConditions[] = "($explicitWhere)";
         }
-        
+
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
-        
-        $sql = "SELECT COUNT($primaryKey) FROM $table $join";
-        $totalRecords = $this->pdo->query($sql)->fetchColumn();
-        
-        $sql = "SELECT COUNT($primaryKey) FROM $table $join $whereClause";
-        $stmt = $this->pdo->prepare($sql);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+
+        // ==== Perhitungan recordsTotal dan recordsFiltered ====
+        if (!empty($groupBy)) {
+            $baseSQL = "SELECT " . implode(", ", $columns) . " FROM $table $join $whereClause GROUP BY $groupBy";
+            if (!empty($having)) {
+                $baseSQL .= " HAVING $having";
+            }
+            $countSQL = "SELECT COUNT(*) FROM ($baseSQL) AS grouped";
+            $stmt = $this->pdo->prepare($countSQL);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+            }
+            $stmt->execute();
+            $filteredRecords = $stmt->fetchColumn();
+            $totalRecords = $filteredRecords;
+        } else {
+            $sql = "SELECT COUNT($primaryKey) FROM $table $join";
+            $totalRecords = $this->pdo->query($sql)->fetchColumn();
+
+            $sql = "SELECT COUNT($primaryKey) FROM $table $join $whereClause";
+            $stmt = $this->pdo->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+            }
+            $stmt->execute();
+            $filteredRecords = $stmt->fetchColumn();
         }
-        $stmt->execute();
-        $filteredRecords = $stmt->fetchColumn();
-        
-        $sql = "SELECT " . implode(", ", $columns) . " FROM $table $join $whereClause ORDER BY $columnName $columnOrder";
+
+        // ==== Ambil data utama ====
+        $sql = "SELECT " . implode(", ", $columns) . " FROM $table $join $whereClause";
+        if (!empty($groupBy)) $sql .= " GROUP BY $groupBy";
+        if (!empty($having)) $sql .= " HAVING $having";
+        $sql .= " ORDER BY $columnName $columnOrder";
         if ($length != -1) {
             $sql .= " LIMIT :start, :length";
         }
+
         $stmt = $this->pdo->prepare($sql);
-    
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
         }
-    
         if ($length != -1) {
             $stmt->bindValue(':start', (int)$start, PDO::PARAM_INT);
             $stmt->bindValue(':length', (int)$length, PDO::PARAM_INT);
         }
         $stmt->execute();
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         return [
             'draw' => (int)$draw,
             'recordsTotal' => (int)$totalRecords,
@@ -94,7 +123,6 @@ class DataHandler {
             'data' => $data
         ];
     }
-    
 
     /**
      * Mengambil data untuk Select2 dalam format JSON.
@@ -107,7 +135,8 @@ class DataHandler {
      *
      * @return array Data dalam format JSON untuk Select2.
      */
-    public function select2(string $table, string $idColumn, string $textColumn, string $extraCondition = '', array $joins = []) {
+    public function select2(string $table, string $idColumn, string $textColumn, string $extraCondition = '', array $joins = [])
+    {
         try {
             $search = $_GET['q'] ?? '';
             $limit  = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
