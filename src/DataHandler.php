@@ -57,8 +57,12 @@ class DataHandler
         if (!empty($searchValue)) {
             $searchConditions = [];
             foreach ($columns as $col) {
-                $searchConditions[] = "$col LIKE :search";
+                $colOnly = preg_replace('/\s+AS\s+\w+$/i', '', $col);
+                if (stripos($colOnly, '(') === false) {
+                    $searchConditions[] = "$colOnly LIKE :search";
+                }
             }
+
             $whereConditions[] = '(' . implode(' OR ', $searchConditions) . ')';
             $params[':search'] = "%$searchValue%";
         }
