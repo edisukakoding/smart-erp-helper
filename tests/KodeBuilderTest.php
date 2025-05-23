@@ -49,4 +49,32 @@ class KodeBuilderTest extends TestCase
 
         $this->assertStringContainsString('/' . date('ym') . '/DEF/0006', $hasil);
     }
+
+    public function testPreviewKodeBarangBaru()
+    {
+        $this->mockQueryBuilder->method('table')->willReturnSelf();
+        $this->mockQueryBuilder->method('where')->willReturnSelf();
+
+        $this->mockQueryBuilder->method('first')->willReturn(null); // Belum ada data kode barang
+
+        $hasil = $this->kodeBuilder->previewKodeBarang('FAB');
+
+        $this->assertEquals('FAB000001', $hasil);
+    }
+
+    public function testBuatKodeBarangDenganDataSebelumnya()
+    {
+        $this->mockQueryBuilder->method('table')->willReturnSelf();
+        $this->mockQueryBuilder->method('where')->willReturnSelf();
+
+        $this->mockQueryBuilder->method('first')->willReturn(['noakhir' => '12']);
+
+        $this->mockQueryBuilder->expects($this->once())
+            ->method('update')
+            ->with(['noakhir' => '000013']);
+
+        $hasil = $this->kodeBuilder->buatKodeBarang('ACC');
+
+        $this->assertEquals('ACC000013', $hasil);
+    }
 }

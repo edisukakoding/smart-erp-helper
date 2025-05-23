@@ -137,4 +137,85 @@ class KodeBuilder
 
         return "{$prefix}/" . $this->tanggal . "/{$usaha['singkatan']}/{$noakhirStr}";
     }
+
+        /**
+     * Mengambil data kategori barang berdasarkan prefix kategori.
+     *
+     * @param string $prefixKategori Prefix kategori barang (misal: FAB, ACC).
+     * @return array|null Data kategori jika ditemukan, null jika tidak.
+     */
+    private function getKodeBarang(string $prefixKategori): ?array
+    {
+        return $this->queryBuilder
+            ->table('rkatbrg')
+            ->where('kdusaha', '=', $this->kdusaha)
+            ->where('kdkatbrg', '=', $prefixKategori)
+            ->first();
+    }
+
+    /**
+     * Menyisipkan kode barang baru ke tabel `rkatbrg`.
+     *
+     * @param string $prefixKategori Prefix kategori barang.
+     * @param string $noakhir Nomor akhir baru.
+     * @return void
+     */
+    private function insertKodeBarang(string $prefixKategori, string $noakhir): void
+    {
+        $this->queryBuilder->table('rkatbrg')->insert([
+            'kdusaha' => $this->kdusaha,
+            'kdkatbrg' => $prefixKategori,
+            'noakhir' => $noakhir
+        ]);
+    }
+
+    /**
+     * Memperbarui kode barang pada tabel `rkatbrg`.
+     *
+     * @param string $prefixKategori Prefix kategori barang.
+     * @param string $noakhir Nomor akhir baru.
+     * @return void
+     */
+    private function updateKodeBarang(string $prefixKategori, string $noakhir): void
+    {
+        $this->queryBuilder->table('rkatbrg')
+            ->where('kdusaha', '=', $this->kdusaha)
+            ->where('kdkatbrg', '=', $prefixKategori)
+            ->update(['noakhir' => $noakhir]);
+    }
+
+    /**
+     * Menampilkan preview kode barang berikutnya tanpa menyimpan ke database.
+     *
+     * @param string $prefixKategori Prefix kategori barang.
+     * @return string Kode barang yang dipratinjau.
+     */
+    public function previewKodeBarang(string $prefixKategori): string
+    {
+        $data = $this->getKodeBarang($prefixKategori);
+        $noakhir = $data ? intval($data['noakhir']) + 1 : 1;
+        return "{$prefixKategori}" . $this->generateNomor($noakhir, 6);
+    }
+
+    /**
+     * Membuat kode barang baru dan menyimpannya ke database.
+     *
+     * @param string $prefixKategori Prefix kategori barang.
+     * @return string Kode barang yang telah dibuat.
+     */
+    public function buatKodeBarang(string $prefixKategori): string
+    {
+        $data = $this->getKodeBarang($prefixKategori);
+        $noakhir = $data ? intval($data['noakhir']) + 1 : 1;
+        $noakhirStr = $this->generateNomor($noakhir, 6);
+
+        if ($data) {
+            $this->updateKodeBarang($prefixKategori, $noakhirStr);
+        } else {
+            $this->insertKodeBarang($prefixKategori, $noakhirStr);
+        }
+
+        return "{$prefixKategori}{$noakhirStr}";
+    }
+
 }
