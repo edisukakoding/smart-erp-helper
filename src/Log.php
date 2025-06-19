@@ -48,9 +48,9 @@ class Log
      * @param string        $subjek Subjek data (misal: 'produk').
      * @param string        $kdtransaksi Kode transaksi atau referensi.
      * @param int|null      $row_id ID baris data yang diubah (opsional).
-     * @param string|null   $previous_data Data sebelumnya dalam bentuk string (opsional).
+     * @param string|null   $data informasi data dalam bentuk string (opsional).
      */
-    public function aktifitas(string $jenis, string $subjek, string $kdtransaksi, ?int $row_id = null, ?string $previous_data = null)
+    public function aktifitas(string $jenis, string $subjek, string $kdtransaksi, ?int $row_id = null, ?string $data = null)
     {
         try {
             $data = [
@@ -60,7 +60,7 @@ class Log
                 'iduser'        => $this->iduser,
                 'kdusaha'       => $this->kdusaha,
                 'row_id'        => $row_id,
-                'previous_data' => $previous_data,
+                'data'          => $data,
                 'aktifitas'     => match ($jenis) {
                     self::INSERT    => "User @{$this->username} menambahkan data $subjek",
                     self::UPDATE    => "User @{$this->username} mengubah data $subjek",
