@@ -43,8 +43,24 @@ function base_url($path = '/')
     return URL::urlUtama($path);
 }
 
-function dd($data)
+function dd(...$vars)
 {
-    echo json_encode($data, JSON_PRETTY_PRINT);
+    echo '<pre>';
+    foreach ($vars as $var) {
+        echo json_encode($var, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        echo "\n\n";
+    }
+    echo '</pre>';
     exit;
+}
+
+
+function dump(...$vars)
+{
+    echo '<pre>';
+    foreach ($vars as $var) {
+        echo json_encode($var, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        echo "\n\n";
+    }
+    echo '</pre>';
 }
