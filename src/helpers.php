@@ -77,3 +77,11 @@ function trace()
     echo '</pre>';
     exit;
 }
+
+function benchmark($start = null)
+{
+    if ($start === null) {
+        return microtime(true);
+    }
+    return round((microtime(true) - $start) * 1000, 2) . ' ms';
+}
