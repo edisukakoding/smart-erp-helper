@@ -64,3 +64,16 @@ function dump(...$vars)
     }
     echo '</pre>';
 }
+
+function trace()
+{
+    echo '<pre>';
+    foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $i => $trace) {
+        $file = $trace['file'] ?? '[internal function]';
+        $line = $trace['line'] ?? '';
+        $function = $trace['function'] ?? '';
+        echo "#$i $function() at $file:$line\n";
+    }
+    echo '</pre>';
+    exit;
+}
