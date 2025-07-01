@@ -1,7 +1,8 @@
 <?php
 
-use Esikat\Helper\Tampilan;
 use Esikat\Helper\URL;
+use Esikat\Helper\Lang;
+use Esikat\Helper\Tampilan;
 
 function URLEncrypt($url) 
 {
@@ -84,4 +85,11 @@ function benchmark($start = null)
         return microtime(true);
     }
     return round((microtime(true) - $start) * 1000, 2) . ' ms';
+}
+
+if (!function_exists('__')) {
+    function __(string $key, string $default = ''): string
+    {
+        return Lang::get($key, $default);
+    }
 }

@@ -1,7 +1,7 @@
 {
     "name": "esikat/smart-erp-helper",
     "description": "Package ini bersisi semua fungsionalitas dalam pengembangan smart-erp",
-    "version": "v1.7.3",
+    "version": "v1.7.4",
     "type": "library",
     "license": "Apache-2.0",
     "autoload": {
