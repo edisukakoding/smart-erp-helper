@@ -4,28 +4,33 @@ namespace Esikat\Helper;
 
 class Lang
 {
-    protected static string $default = 'id'; // Default ke bahasa Indonesia
+    protected static string $default = 'id-ID';
     protected static string $current;
     protected static array $translations = [];
     protected static array $defaultTranslations = [];
-    protected static string $langPath = __DIR__ . '/../lang'; // Path default
+    protected static string $langPath = __DIR__ . '/../lang';
 
     public static function setLangPath(string $path): void
     {
         self::$langPath = rtrim($path, '/\\');
     }
 
+    public static function setDefault(string $lang): void
+    {
+        self::$default = $lang;
+    }
+
+    public static function setCurrent(string $lang): void
+    {
+        $available = self::available();
+        self::$current = in_array($lang, $available) ? $lang : self::$default;
+    }
+
     public static function init(): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        if (!isset(self::$current)) {
+            self::$current = self::$default;
         }
-
-        $lang = $_GET['lang'] ?? $_SESSION['lang'] ?? self::$default;
-        $available = self::available();
-
-        self::$current = in_array($lang, $available) ? $lang : self::$default;
-        $_SESSION['lang'] = self::$current;
 
         self::$translations = self::load(self::$current);
         self::$defaultTranslations = self::load(self::$default);

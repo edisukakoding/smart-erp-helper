@@ -7,58 +7,57 @@ class LangTest extends TestCase
 {
     protected function setUp(): void
     {
-        // Path ke folder lang (disesuaikan dengan struktur project kamu)
         $langPath = realpath(__DIR__ . '/../lang');
         Lang::setLangPath($langPath);
-
-        // Reset session/lang sebelum init
-        $_SESSION = [];
-        $_GET = [];
-        Lang::init();
     }
 
-    public function testDefaultLanguageLoadsCorrectly()
+    public function test_bahasa_default_dimuat_dengan_benar()
     {
-        // Karena default 'id'
+        Lang::setDefault('id-ID');
+        Lang::setCurrent('id-ID');
         Lang::init();
+
         $this->assertSame('Selamat Datang', Lang::get('title'));
     }
 
-    public function testFallbackToDefaultLanguage()
+    public function test_fallback_ke_bahasa_default()
     {
-        $_GET['lang'] = 'en'; // en tidak punya nested.key
+        Lang::setDefault('id-ID');
+        Lang::setCurrent('en-US');
         Lang::init();
 
         $this->assertSame('Nilai Terbenam', Lang::get('nested.key'));
     }
 
-    public function testCurrentLanguage()
+    public function test_set_dan_get_bahasa_saat_ini()
     {
-        $_GET['lang'] = 'id';
+        Lang::setDefault('id-ID');
+        Lang::setCurrent('en-US');
         Lang::init();
 
-        $this->assertSame('id', Lang::current());
+        $this->assertSame('en-US', Lang::current());
     }
 
-    public function testReturnDefaultIfKeyNotFoundAnywhere()
+    public function test_jika_key_tidak_ada_maka_kembali_default()
     {
-        $_GET['lang'] = 'en';
+        Lang::setDefault('id-ID');
+        Lang::setCurrent('en-US');
         Lang::init();
 
-        $this->assertSame('default value', Lang::get('tidak.ada', 'default value'));
+        $this->assertSame('fallback', Lang::get('tidak.ada', 'fallback'));
     }
 
-    public function testAvailableLanguagesDetectsAllJson()
+    public function test_mendeteksi_semua_file_json()
     {
         $langs = Lang::available();
-
-        $this->assertContains('id', $langs);
-        $this->assertContains('en', $langs);
+        $this->assertContains('id-ID', $langs);
+        $this->assertContains('en-US', $langs);
     }
 
-    public function testHelperFunctionReturnsTranslation()
+    public function test_helper_mengembalikan_terjemahan()
     {
-        $_GET['lang'] = 'id';
+        Lang::setDefault('id-ID');
+        Lang::setCurrent('id-ID');
         Lang::init();
 
         $this->assertSame('Selamat Datang', __('title'));
