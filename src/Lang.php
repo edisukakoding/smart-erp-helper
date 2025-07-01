@@ -49,7 +49,7 @@ class Lang
         $value = self::getNested(self::$translations, $key)
                ?? self::getNested(self::$defaultTranslations, $key);
 
-        return is_string($value) ? $value : $default;
+        return is_string($value) ? $value : ($default ?: $key);
     }
 
     protected static function getNested(array $data, string $key): mixed
