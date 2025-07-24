@@ -133,6 +133,22 @@ class QueryBuilder
         return $this;
     }
 
+    /**
+     * Menambahkan kondisi OR WHERE pada query.
+     *
+     * @param string    $raw Raw Query.
+     * @param array     $binding value (e.g., '=', '<', '>').
+     * 
+     * @return self Instance dari QueryBuilder.
+     */
+    public function whereRaw(string $raw, array $bindings = []): self
+    {
+        $this->conditions[] = (empty($this->conditions) ? "" : "AND ") . $raw;
+        $this->bindings = array_merge($this->bindings, $bindings);
+        return $this;
+    }
+
+
 
     /**
      * Menambahkan join (INNER, LEFT, RIGHT) pada query.

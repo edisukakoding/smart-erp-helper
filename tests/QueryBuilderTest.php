@@ -112,4 +112,18 @@ class QueryBuilderTest extends TestCase
         $this->queryBuilder->delete();
     }
 
+    public function testWhereRaw()
+    {
+        $this->queryBuilder->table('users')
+            ->select()
+            ->where('status', 'active')
+            ->whereRaw('(type = ? OR type = ?)', ['admin', 'user']);
+
+        $this->assertEquals(
+            'SELECT * FROM users WHERE status = ? AND (type = ? OR type = ?)',
+            $this->queryBuilder->toSql()
+        );
+
+        $this->assertEquals(['active', 'admin', 'user'], $this->queryBuilder->getBindings());
+    }
 }
